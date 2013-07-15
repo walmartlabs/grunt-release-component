@@ -88,14 +88,14 @@ module.exports = function(grunt) {
       },
 
       // Add and commit in component repo
-      function() {
+      function(next) {
         var commands = [];
         for(var source in filesToCopy) {
           var target = filesToCopy[target];
-          commands.push(['git', ['add', path.join(tmpRepoRoot, target)]]);
+          commands.push(['git', ['add', target]]);
         }
-        commands.push(['git', ['add', path.join(tmpRepoRoot, 'bower.json')]]);
-        commands.push(['git', ['add', path.join(tmpRepoRoot, 'package.json')]]);
+        commands.push(['git', ['add', 'bower.json']]);
+        commands.push(['git', ['add', 'package.json']]);
         commands.push(['git', ['commit', '-m', '"release ' + newVersion + '"']]);
         execSeries(commands, next, {
           cwd: tmpRepoRoot
