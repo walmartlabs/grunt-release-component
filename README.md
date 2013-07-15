@@ -8,9 +8,6 @@ But the bower component lives here:
 
 https://github.com/components/thorax
 
-This plugin is designed to be run after something like [grunt-release](https://github.com/geddski/grunt-release
-).
-
 ## Usage
 
 The copy command will copy the generated files into the component repo.
