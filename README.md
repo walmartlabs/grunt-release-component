@@ -8,6 +8,13 @@ But the bower component lives here:
 
 https://github.com/components/thorax
 
+This grunt task would in this example:
+
+- bump the versions in `package.json` and `bower.json` in `walmartlabs/thorax`
+- push a new tag to `walmartlabs/thorax`
+- bump the versions in `bower.json` and `component.json` in `components/thorax`
+- push a new tag to `components/thorax`
+
 ## Config
 
 The copy command will copy any generated files into the component repo.
