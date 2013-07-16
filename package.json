@@ -1,6 +1,6 @@
 {
   "name": "grunt-release-component",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A release helper for bower components",
   "keywords": [
     "bower",
