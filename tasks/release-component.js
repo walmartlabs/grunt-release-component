@@ -2,11 +2,14 @@ var fs = require('fs'),
     async = require('async'),
     childProcess = require('child_process'),
     path = require('path'),
+    semver = require('semver'),
     execSeries = require('../lib/exec-series.js'),
     spawnCommand = require('../lib/spawn-command.js');
 
 module.exports = function(grunt) {
   grunt.registerTask('release-component', function(type) {
+    var complete = this.async();
+
     this.requiresConfig('release-component.options.copy');
     this.requiresConfig('release-component.options.componentRepo');
 
@@ -34,8 +37,16 @@ module.exports = function(grunt) {
       function(next) {
         modifyJSONSync(path.join(repoRoot, 'bower.json'), function(bowerJSON) {
           oldVersion = bowerJSON.version;
-          newVersion = bowerJSON.version = semver.inc(bowerJSON.version, type || 'patch');
+          if (!type) {
+            type = 'patch';
+          }
+          if (['major', 'minor', 'patch'].indexOf(type) === -1) {
+            newVersion = type;
+          } else {
+            newVersion = semver.inc(bowerJSON.version, type || 'patch');
+          }
           console.log('version changed from ' + oldVersion + ' to ' + newVersion);
+          bowerJSON.version = newVersion;
         });
         modifyJSONSync(path.join(repoRoot, 'package.json'), function(packageJSON) {
           packageJSON.version = newVersion;
@@ -71,7 +82,7 @@ module.exports = function(grunt) {
           ['git', ['clone', componentRepo, tmpRepoRoot]]
         ];
         for(var source in filesToCopy) {
-          var target = filesToCopy[target];
+          var target = filesToCopy[source];
           commands.push(['cp', [path.join(repoRoot, source), path.join(tmpRepoRoot, target)]]);
         }
         execSeries(commands, next);
@@ -79,23 +90,36 @@ module.exports = function(grunt) {
 
       // Bump versions in component repo
       function(next) {
-        modifyJSONSync(path.join(tmpRepoRoot, 'bower.json'), function(bowerJSON) {
-          bowerJSON.version = newVersion;
-        });
-        modifyJSONSync(path.join(tmpRepoRoot, 'component.json'), function(componentJSON) {
-          componentJSON.version = newVersion;
-        });
+        var bowerJSONPath = path.join(tmpRepoRoot, 'bower.json');
+        if (fs.existsSync(bowerJSONPath)) {
+          modifyJSONSync(bowerJSONPath, function(bowerJSON) {
+            bowerJSON.version = newVersion;
+          });
+        }
+        var componentJSONPath = path.join(tmpRepoRoot, 'component.json');
+        if (fs.existsSync(componentJSONPath)) {
+          modifyJSONSync(componentJSONPath, function(componentJSON) {
+            componentJSON.version = newVersion;
+          });
+        }
+        next();
       },
 
       // Add and commit in component repo
       function(next) {
         var commands = [];
         for(var source in filesToCopy) {
-          var target = filesToCopy[target];
-          commands.push(['git', ['add', target]]);
+          var target = filesToCopy[source];
+          commands.push(['git', ['add', path.join(tmpRepoRoot, target)]]);
         }
-        commands.push(['git', ['add', 'bower.json']]);
-        commands.push(['git', ['add', 'package.json']]);
+        var bowerJSONPath = path.join(tmpRepoRoot, 'bower.json');
+        if (fs.existsSync(bowerJSONPath)) {
+          commands.push(['git', ['add', bowerJSONPath]]);
+        }
+        var componentJSONPath = path.join(tmpRepoRoot, 'component.json');
+        if (fs.existsSync(componentJSONPath)) {
+          commands.push(['git', ['add', componentJSONPath]]);
+        }
         commands.push(['git', ['commit', '-m', '"release ' + newVersion + '"']]);
         execSeries(commands, next, {
           cwd: tmpRepoRoot
@@ -126,9 +150,7 @@ module.exports = function(grunt) {
         ], next);
       }
 
-    ], function() {
-
-    });
+    ], complete);
   });
 };
 
