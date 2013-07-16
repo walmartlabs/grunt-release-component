@@ -76,6 +76,12 @@ module.exports = function(grunt) {
         ], next);
       },
 
+      function(next) {
+        execSeries([
+          ['npm', ['publish']]
+        ], next);
+      },
+
       // Clone components repo into tmp and copy built files into it
       function(next) {
         var commands = [
