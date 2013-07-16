@@ -8,9 +8,9 @@ But the bower component lives here:
 
 https://github.com/components/thorax
 
-## Usage
+## Config
 
-The copy command will copy the generated files into the component repo.
+The copy command will copy any generated files into the component repo.
 
     grunt.initConfig({
       'release-component': {
@@ -24,5 +24,22 @@ The copy command will copy the generated files into the component repo.
       }
     });
 
+## Usage
 
+The command may be run with any of the predefined version incriments:
 
+- `patch` (0.0.x)
+- `minor` (0.x.0)
+- `major` (x.0.0)
+
+Which would look like:
+
+    grunt release-component:patch
+    grunt release-component:minor
+    grunt release-component:major
+
+Or with an arbitrary version argument to force a particular version:
+
+    grunt release-component:2.0.0-rc11
+
+The argument should always be a number.
