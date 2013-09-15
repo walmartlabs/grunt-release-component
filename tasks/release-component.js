@@ -17,6 +17,7 @@ module.exports = function(grunt) {
 
     var filesToCopy = options.copy;
     var componentRepo = options.componentRepo;
+    var doNpmPublish = typeof options.npmPublish === 'undefined' ? true : options.npmPublish;
 
     // Grunt is kind enough to change cwd to the directory the Gruntfile is in
     // but double check just in case
@@ -79,9 +80,11 @@ module.exports = function(grunt) {
       },
 
       function(next) {
-        execSeries([
-          ['npm', ['publish']]
-        ], next);
+        var commands = [];
+        if (doNpmPublish) {
+          commands.push(['npm', ['publish']]);
+        }
+        execSeries(commands, next);
       },
 
       // Clone components repo into tmp and copy built files into it
