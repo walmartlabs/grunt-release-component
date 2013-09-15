@@ -2,6 +2,7 @@ var fs = require('fs'),
     async = require('async'),
     childProcess = require('child_process'),
     path = require('path'),
+    util = require('util'),
     semver = require('semver'),
     execSeries = require('../lib/exec-series.js'),
     spawnCommand = require('../lib/spawn-command.js');
@@ -13,8 +14,14 @@ module.exports = function(grunt) {
     this.requiresConfig('release-component.options.copy');
     this.requiresConfig('release-component.options.componentRepo');
 
-    var filesToCopy = grunt.config.get('release-component.options.copy');
-    var componentRepo = grunt.config.get('release-component.options.componentRepo');
+    var options = this.options();
+
+    var filesToCopy = options.copy;
+    var componentRepo = options.componentRepo;
+    var doNpmPublish = typeof options.npmPublish === 'undefined' ? true : options.npmPublish;
+    var commitMessage = options.commitMessage || 'release %s';
+    var tagName = options.tagName || 'v%s';
+    var tagAnnotation = options.tagAnnotation || 'v%s';
 
     // Grunt is kind enough to change cwd to the directory the Gruntfile is in
     // but double check just in case
@@ -59,13 +66,13 @@ module.exports = function(grunt) {
         execSeries([
           ['git', ['add', path.join(repoRoot, 'bower.json')]],
           ['git', ['add', path.join(repoRoot, 'package.json')]],
-          ['git', ['commit', '-m', '"release ' + newVersion + '"']]
+          ['git', ['commit', '-m', util.format(commitMessage, newVersion)]]
         ], next);
       },
 
       // Tag
       function(next) {
-        tag('v' + newVersion, next);
+        tag(util.format(tagName, newVersion), util.format(tagAnnotation, newVersion), next);
       },
 
       // Push
@@ -77,9 +84,11 @@ module.exports = function(grunt) {
       },
 
       function(next) {
-        execSeries([
-          ['npm', ['publish']]
-        ], next);
+        var commands = [];
+        if (doNpmPublish) {
+          commands.push(['npm', ['publish']]);
+        }
+        execSeries(commands, next);
       },
 
       // Clone components repo into tmp and copy built files into it
@@ -126,7 +135,7 @@ module.exports = function(grunt) {
         if (fs.existsSync(componentJSONPath)) {
           commands.push(['git', ['add', componentJSONPath]]);
         }
-        commands.push(['git', ['commit', '-m', '"release ' + newVersion + '"']]);
+        commands.push(['git', ['commit', '-m', util.format(commitMessage, newVersion)]]);
         execSeries(commands, next, {
           cwd: tmpRepoRoot
         });
@@ -134,7 +143,7 @@ module.exports = function(grunt) {
 
       // Tag in component repo
       function(next) {
-        tag('v' + newVersion, next, {
+        tag(util.format(tagName, newVersion), util.format(tagAnnotation, newVersion), next, {
           cwd: tmpRepoRoot
         });
       },
@@ -174,8 +183,8 @@ function ensureClean(callback) {
   });
 }
 
-function tag(name, callback, options) {
-  spawnCommand('git', ['tag', '-a', '--message=' + name, name], options)
+function tag(name, annotation, callback, options) {
+  spawnCommand('git', ['tag', '-a', '--message=' + annotation, name], options)
       .on('error', function(err) {
         throw err;
       })

@@ -50,3 +50,14 @@ Or with an arbitrary version argument to force a particular version:
     grunt release-component:2.0.0-rc11
 
 The argument should always be a number.
+
+## Additional options
+
+To fine-tune the results, some additional options can be provided. The options with their default values:
+
+    options: {
+      npmPublish: true,
+      commitMessage: 'release %s',
+      tagName: 'v%s',
+      tagAnnotation: 'v%s'
+    }
