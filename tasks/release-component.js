@@ -13,8 +13,10 @@ module.exports = function(grunt) {
     this.requiresConfig('release-component.options.copy');
     this.requiresConfig('release-component.options.componentRepo');
 
-    var filesToCopy = grunt.config.get('release-component.options.copy');
-    var componentRepo = grunt.config.get('release-component.options.componentRepo');
+    var options = this.options();
+
+    var filesToCopy = options.copy;
+    var componentRepo = options.componentRepo;
 
     // Grunt is kind enough to change cwd to the directory the Gruntfile is in
     // but double check just in case
