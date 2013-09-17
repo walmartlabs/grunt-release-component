@@ -1,5 +1,9 @@
 {
   "name": "grunt-release-component",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/walmartlabs/grunt-release-component"
+  },
   "version": "0.0.3",
   "description": "A release helper for bower components",
   "keywords": [
