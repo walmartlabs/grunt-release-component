@@ -77,9 +77,15 @@ module.exports = function(grunt) {
       },
 
       function(next) {
-        execSeries([
-          ['npm', ['publish']]
-        ], next);
+        var JSONPath = path.join(repoRoot, 'package.json');
+        var packageJSON = JSON.parse(fs.readFileSync(JSONPath).toString());
+        if (packageJSON.private) {
+          next();
+        } else {
+          execSeries([
+            ['npm', ['publish']]
+          ], next);
+        }
       },
 
       // Clone components repo into tmp and copy built files into it
