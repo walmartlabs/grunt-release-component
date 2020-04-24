@@ -8,7 +8,7 @@
   ],
   "dependencies": {
     "async": "~0.2.9",
-    "semver": "~2.0.7"
+    "semver": "~2.3.2"
   },
   "devDependencies": {
     "mocha": "~1.10.0"
